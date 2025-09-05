@@ -1,4 +1,4 @@
-from .grammar import Rule
+from .grammar import Rule, Alt, Seq, Star
 from .parser  import Node, Parser, Token
 
 
@@ -38,14 +38,9 @@ def evaluate(node: Node) -> float:
 def main() -> None:
     parser = Parser(
         [
-            Rule("add", ["add", "+", "mul"]),
-            Rule("add", ["add", "-", "mul"]),
-            Rule("add", ["mul"]),
-            Rule("mul", ["mul", "*", "atom"]),
-            Rule("mul", ["mul", "/", "atom"]),
-            Rule("mul", ["atom"]),
-            Rule("atom", ["(", "add", ")"]),
-            Rule("atom", ["int"]),
+            Rule("add", ["mul", Star(Seq([Alt(["+", "-"]), "mul"]))]),
+            Rule("mul", ["atom", Star(Seq([Alt(["*", "/"]), "atom"]))]),
+            Rule("atom", [Alt([Seq(["(", "add", ")"]), "int"])]),
         ]
     )
     root = parser.parse(
@@ -61,6 +56,7 @@ def main() -> None:
             Token(")"),
         ]
     )
+    parser._G.print() # type: ignore
     root.print()
     print("Eval: " + str(evaluate(root)))
 

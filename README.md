@@ -131,3 +131,7 @@ expression with it. For fun, I also interpreted (evaluated) it and print out
 the resulting value. In a sense, in this repository, I've implemented both
 LR1 parsing and an interpreter.
 ```
+
+# Changelog
+
+- Added EBNF (Extended Backus–Naur form) for regex-style rule definitions.

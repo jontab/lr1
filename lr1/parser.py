@@ -1,6 +1,6 @@
 from .automaton  import LR1Automaton
 from .first      import FirstSets
-from .grammar    import Grammar, Rule
+from .grammar    import Grammar, Rule, expand
 from .tables     import LR1Tables
 from dataclasses import dataclass
 
@@ -38,7 +38,7 @@ class Node:
 
 class Parser:
     def __init__(self, rules: list[Rule]) -> None:
-        self._G      = Grammar.create(rules)
+        self._G      = Grammar.create(expand(rules))
         self._F      = FirstSets(self._G)
         self._A      = LR1Automaton.create(self._G, self._F)
         self._tables = LR1Tables.create(self._G, self._A)
@@ -58,7 +58,7 @@ class Parser:
 
             match action[0]:
                 case "accept":
-                    return nodes[-1]
+                    return self._strip_inline(nodes[-1])
 
                 case "reduce":
                     rule = self._G.rules[action[1]]
@@ -81,3 +81,14 @@ class Parser:
 
     def _expected_from_state(self, state: int) -> list[str]:
         return sorted(name for i, name in self._tables.action if i == state)
+
+    def _strip_inline(self, node: Node) -> Node:
+        kids: list[Node] = []
+        for kid in node.kids:
+            kid = self._strip_inline(kid)
+            if kid.name.startswith("__"):
+                kids.extend(kid.kids)
+            else:
+                kids.append(kid)
+        node.kids = kids
+        return node
